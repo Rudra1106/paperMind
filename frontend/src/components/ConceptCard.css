@@ -1,0 +1,152 @@
+/* ConceptCard.css */
+
+/* ── Pipeline Progress ─────────────────────────────────────────────────────── */
+.pipeline-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  width: 100%;
+}
+
+.pipeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pipeline-stage-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.pipeline-pct {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--indigo-400);
+  font-family: var(--font-mono);
+}
+
+.pipeline-steps {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.pipeline-step {
+  flex: 1;
+  height: 3px;
+  border-radius: var(--radius-full);
+  transition: background var(--t-base);
+}
+
+.pipeline-step.done    { background: var(--indigo-500); }
+.pipeline-step.active  { background: var(--indigo-400); animation: pulse-glow 1.5s infinite; }
+.pipeline-step.pending { background: var(--bg-hover); }
+
+/* ── Concept Card ──────────────────────────────────────────────────────────── */
+.concept-card {
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--s5) var(--s6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  transition: all var(--t-base);
+}
+
+.concept-card:hover {
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+/* Accent stripe based on priority */
+.concept-card.priority-critical { border-left: 3px solid var(--danger); }
+.concept-card.priority-high     { border-left: 3px solid var(--warning); }
+.concept-card.priority-medium   { border-left: 3px solid var(--info); }
+.concept-card.priority-almost_there { border-left: 3px solid var(--success); }
+
+.concept-card-header {}
+
+.concept-card-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+
+.concept-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.concept-badges {
+  display: flex;
+  gap: var(--s2);
+  flex-shrink: 0;
+}
+
+.concept-definition {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* Requires pills */
+.concept-requires {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.concept-requires-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.concept-requires-tag {
+  font-size: 12px;
+  padding: 2px 8px;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+.concept-requires-more {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 2px 6px;
+}
+
+/* Card footer: confidence + action buttons */
+.concept-footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding-top: var(--s2);
+  border-top: 1px solid var(--border);
+  margin-top: var(--s1);
+}
+
+.concept-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  flex-wrap: wrap;
+}
+
+.concept-actions .btn-ghost {
+  text-decoration: none;
+}

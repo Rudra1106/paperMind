@@ -1,0 +1,116 @@
+/* GraphPage.css */
+
+.graph-page { position: relative; }
+
+/* ── Stats ───────────────────────────────────────────────────────────────────*/
+.graph-stats {
+  display: flex;
+  align-items: center;
+  gap: var(--s6);
+  flex-wrap: wrap;
+  margin-bottom: var(--s6);
+  position: relative;
+  z-index: 1;
+}
+
+.graph-stat {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.graph-stat-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.graph-stat-num {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  min-width: 24px;
+}
+
+.graph-stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* ── Canvas Card ─────────────────────────────────────────────────────────────*/
+.graph-canvas-card {
+  height: 460px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: var(--s6);
+  z-index: 1;
+}
+
+.graph-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ── List Header ─────────────────────────────────────────────────────────────*/
+.graph-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s4);
+  margin-bottom: var(--s4);
+  position: relative;
+  z-index: 1;
+}
+
+.graph-search {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  padding: 7px 16px;
+  font-size: 13px;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--t-base);
+  width: 220px;
+}
+
+.graph-search:focus {
+  border-color: var(--border-focus);
+}
+
+.graph-search::placeholder { color: var(--text-muted); }
+
+/* ── Concept Grid ────────────────────────────────────────────────────────────*/
+.concept-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--s3);
+  position: relative;
+  z-index: 1;
+  margin-bottom: var(--s8);
+}
+
+.concept-pill {
+  padding: var(--s3) var(--s4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  transition: all var(--t-base);
+}
+
+.concept-pill:hover {
+  border-color: var(--border-focus);
+  transform: translateY(-1px);
+}
+
+.concept-pill-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

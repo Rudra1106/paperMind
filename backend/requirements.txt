@@ -1,0 +1,28 @@
+# Web framework
+fastapi
+uvicorn[standard]
+
+# Cognee - the graph memory engine
+cognee
+
+# HTTP client for OpenRouter LLM calls
+httpx
+
+# PDF extraction
+pdfplumber
+
+# Wikipedia enrichment
+Wikipedia-API
+
+# Environment variable management
+python-dotenv
+
+# Pydantic for data validation (FastAPI uses this internally too)
+pydantic
+pydantic-settings
+
+# File upload support for FastAPI
+python-multipart
+
+# Async utilities
+anyio

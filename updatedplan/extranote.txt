@@ -1,0 +1,9 @@
+This one's grounded in the actual Cognee docs, not inference — and it changes a few real things:
+
+The confidence-storage design is now different and cleaner. Instead of tracking data_ids per concept (Part 2's approach), give each concept its own tiny dataset (user_knowledge__multi_head_attention, etc.) and use forget(dataset=...) — which is the one deletion primitive that's unambiguously documented and demonstrated everywhere in Cognee's own examples. No id-tracking, no risk of the standalone-DataPoint dataset-association trap I found while reading the custom data models page.
+INSIGHTS and TRIPLET_COMPLETION, not GRAPH_COMPLETION, are almost certainly the right search types for your dependency/prerequisite queries — they return structured edges instead of LLM prose, which is exactly what your topological sort needs to consume.
+remember() takes a FastAPI UploadFile directly — you can drop the manual chunking step I'd planned for the chatbot's full-text layer entirely.
+dataset_name is the real kwarg, not dataset — a small but breaking correction to Part 2's endpoint code.
+
+The smoke test script in Section 6 is the thing to actually run first — it exercises every assumption in this whole document (the SearchType enum, what remember() returns, what INSIGHTS output looks like) against your real install in about fifteen minutes, against Cognee Cloud so you're not fighting local setup on top of it.
+lets use cognee cloude from start as i have credits of around 30 dollars.
