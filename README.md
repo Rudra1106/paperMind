@@ -3,19 +3,22 @@
   <p><em>The Gap, Made Explicit. A personalized topological learning roadmap for Research papers.</em></p>
   <p>
     <strong>Built for The Hangover Hackathon</strong> <br/>
-    Powered by <strong>Cognee</strong> ⚙️
+    Powered by <strong>Cognee</strong> 
   </p>
 </div>
 
 ---
 
-## 🛑 The Problem: The Prerequisite Gap
-Reading machine learning papers is notoriously difficult. Not because the novel ideas are impossible to grasp, but because of **the prerequisite gap**. Every paper assumes you already know a vast web of foundational concepts. Traditional RAG systems fail here because they blindly chunk and retrieve text, often returning paragraphs of jargon that leave you even more confused.
+##  The Problem: The Prerequisite Gap
+Reading papers is notoriously difficult. Not because the novel ideas are impossible to grasp, but because of **the prerequisite gap**. Every paper assumes you already know a vast web of foundational concepts. Traditional RAG systems fail here because they blindly chunk and retrieve text, often returning paragraphs of jargon that leave you even more confused.
 
-## 💡 The Solution: PaperMind
-PaperMind doesn't just read a paper; it deeply understands its structure. By extracting the implicit prerequisites and novel mechanisms behind every machine learning paper, PaperMind builds a **personalized topological roadmap to understanding**. 
+##  The Solution: PaperMind
+PaperMind doesn't just read a paper; it deeply understands its structure. By extracting the implicit prerequisites and novel mechanisms behind every paper, PaperMind builds a **personalized topological roadmap to understanding**. 
 
 Instead of overwhelming you with a wall of text, PaperMind maps exactly what you need to learn *before* you can understand the paper's core contribution, turning an impenetrable PDF into a step-by-step learning journey.
+
+## And not just it:
+papermind also stores what you have read , understood , researched about and build a personalised knowledge graph (by storing each sessions meta data through page indexing) of a user so they can manage to relate interconnected topics. 
 
 ---
 
