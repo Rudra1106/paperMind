@@ -13,6 +13,7 @@ httpx
 
 # PDF extraction
 pymupdf4llm
+pdfplumber
 
 # Wikipedia enrichment
 Wikipedia-API
