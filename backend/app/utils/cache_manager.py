@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 app/utils/cache_manager.py
 

@@ -5,11 +5,14 @@ uvicorn[standard]
 # Cognee - the graph memory engine
 cognee
 
+# Fuzzy string matching
+rapidfuzz
+
 # HTTP client for OpenRouter LLM calls
 httpx
 
 # PDF extraction
-pdfplumber
+pymupdf4llm
 
 # Wikipedia enrichment
 Wikipedia-API
@@ -26,3 +29,5 @@ python-multipart
 
 # Async utilities
 anyio
+supabase
+aiolimiter

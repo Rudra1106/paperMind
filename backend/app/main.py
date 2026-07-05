@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 app/main.py
 
@@ -58,6 +59,16 @@ def create_app() -> FastAPI:
         logger.info("PaperMind backend starting up...")
         await init_cognee()
         logger.info("Cognee initialised. Ready to process papers.")
+        
+        # Clean up stuck jobs
+        from app.services.job_store import get_stuck_jobs, fail_job
+        try:
+            stuck_jobs = await get_stuck_jobs()
+            for job in stuck_jobs:
+                logger.info("Marking stuck job %s as failed due to server restart", job["id"])
+                await fail_job(job["id"], job.get("stage", "unknown"), "Server interrupted. Please upload the paper again.")
+        except Exception as exc:
+            logger.error("Failed to clean up stuck jobs: %s", exc)
 
     @app.on_event("shutdown")
     async def on_shutdown() -> None:

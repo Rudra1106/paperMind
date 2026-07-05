@@ -1,6 +1,7 @@
 import './ConceptCard.css';
-import { updateConcept } from '../api/client';
+import { updateConcept, expandConcept } from '../api/client';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const STAGE_LABELS = {
   checking_cache: 'Checking cache…',
@@ -60,8 +61,14 @@ export function PipelineProgress({ stage, status }) {
   );
 }
 
-export function ConceptCard({ concept, onUpdate }) {
+export function ConceptCard({ concept, onUpdate, paperId }) {
   const [loading, setLoading] = useState(null);
+  const [expanded, setExpanded] = useState(false);
+  const [subConcepts, setSubConcepts] = useState(null);
+  const [expanding, setExpanding] = useState(false);
+  const [expansionError, setExpansionError] = useState(null);
+  const [showDef, setShowDef] = useState(false);
+  const navigate = useNavigate();
 
   const handleAction = async (action) => {
     setLoading(action);
@@ -77,10 +84,36 @@ export function ConceptCard({ concept, onUpdate }) {
 
   const confPct = Math.round((concept.confidence || 0) * 100);
 
+  const handleExpand = async () => {
+    setExpanded(!expanded);
+    if (!expanded && !subConcepts && paperId) {
+      setExpanding(true);
+      setExpansionError(null);
+      try {
+        const res = await expandConcept(concept.canonical_name, paperId);
+        setSubConcepts(res.sub_concepts || []);
+      } catch (e) {
+        console.error('Failed to expand concept:', e);
+        setSubConcepts(null);
+        setExpansionError(e.message || 'Failed to expand concept. Are you logged in?');
+      } finally {
+        setExpanding(false);
+      }
+    }
+  };
+
+  const handleAskProfessor = () => {
+    // Navigate to chat and pre-fill message
+    navigate(`/chat?paper_id=${paperId}&message=${encodeURIComponent(`Can you explain ${concept.display_name} in detail?`)}`);
+  };
+
   return (
     <div className={`concept-card fade-in priority-${concept.priority}`}>
       <div className="concept-card-header">
         <div className="concept-card-title-row">
+          <button className="expand-chevron-btn" onClick={handleExpand}>
+            {expanded ? '▼' : '▶'}
+          </button>
           <h3 className="concept-name">{concept.display_name}</h3>
           <div className="concept-badges">
             <span className={`badge badge-${concept.priority}`}>
@@ -93,8 +126,8 @@ export function ConceptCard({ concept, onUpdate }) {
         </div>
       </div>
 
-      {concept.definition && (
-        <p className="concept-definition">{concept.definition}</p>
+      {showDef && concept.definition && (
+        <p className="concept-definition fade-in">{concept.definition}</p>
       )}
 
       {concept.requires?.length > 0 && (
@@ -128,24 +161,37 @@ export function ConceptCard({ concept, onUpdate }) {
         </div>
 
         <div className="concept-actions">
-          {concept.resource_urls?.[0] && (
-            <a
-              href={`https://en.wikipedia.org/wiki/${encodeURIComponent(concept.display_name)}`}
-              target="_blank"
-              rel="noreferrer"
-              className="btn btn-ghost"
+          {concept.definition && (
+            <button
+              className={`btn btn-ghost ${showDef ? 'active' : ''}`}
               style={{ fontSize: '12px', padding: '5px 10px' }}
+              onClick={() => setShowDef(!showDef)}
             >
-              📖 Learn
-            </a>
+              📖 Definition
+            </button>
           )}
+          <button
+            className="btn btn-ghost"
+            style={{ fontSize: '12px', padding: '5px 10px' }}
+            onClick={handleExpand}
+          >
+            🔬 Go Deeper
+          </button>
+          <button
+            className="btn btn-ghost"
+            style={{ fontSize: '12px', padding: '5px 10px' }}
+            onClick={handleAskProfessor}
+          >
+            💬 Ask Professor
+          </button>
+          <div style={{ width: '8px' }} />
           <button
             className="btn btn-danger"
             style={{ fontSize: '12px', padding: '5px 10px' }}
             onClick={() => handleAction('confused')}
             disabled={loading !== null}
           >
-            {loading === 'confused' ? <span className="spinner" style={{ width: 12, height: 12 }} /> : '😕 Confused'}
+            {loading === 'confused' ? <span className="spinner" style={{ width: 12, height: 12 }} /> : '😕'}
           </button>
           <button
             className="btn btn-success"
@@ -153,10 +199,48 @@ export function ConceptCard({ concept, onUpdate }) {
             onClick={() => handleAction('understood')}
             disabled={loading !== null}
           >
-            {loading === 'understood' ? <span className="spinner" style={{ width: 12, height: 12 }} /> : '✓ Got it'}
+            {loading === 'understood' ? <span className="spinner" style={{ width: 12, height: 12 }} /> : '✓'}
           </button>
         </div>
       </div>
+
+      {expanded && (
+        <div className="sub-concepts-container fade-in">
+          {expanding ? (
+            <div className="sub-concept-loading">
+              <span className="spinner" style={{ width: 16, height: 16, marginRight: 8 }} />
+              Loading sub-concepts...
+            </div>
+          ) : expansionError ? (
+            <div className="sub-concept-empty" style={{ color: 'var(--danger)' }}>
+              ⚠️ {expansionError}
+            </div>
+          ) : subConcepts && subConcepts.length > 0 ? (
+            subConcepts.map(sc => (
+              <div key={sc.canonical_name} className="sub-concept-card">
+                <div className="sub-concept-header">
+                  <h4>{sc.name}</h4>
+                  {sc.is_math && <span className="badge badge-medium">Math</span>}
+                </div>
+                <p className="sub-concept-def">{sc.definition}</p>
+                {sc.formula && (
+                  <div className="sub-concept-formula">
+                    <code>{sc.formula}</code>
+                  </div>
+                )}
+                {sc.wolfram_result && (
+                  <div className="sub-concept-wolfram">
+                    <span className="wolfram-badge">✓ Wolfram Verified</span>
+                    <p>{sc.wolfram_result}</p>
+                  </div>
+                )}
+              </div>
+            ))
+          ) : subConcepts && subConcepts.length === 0 ? (
+            <div className="sub-concept-empty">No sub-concepts identified.</div>
+          ) : null}
+        </div>
+      )}
     </div>
   );
 }

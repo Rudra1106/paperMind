@@ -1,0 +1,201 @@
+{
+  "paper": {
+    "id": "03291d4e-8210-551c-bd9c-0121d324d3a9",
+    "pdf_hash": "18e1b007a1dab45b30cc861ba2dfda25",
+    "title": "Attention Is All You Need",
+    "filename": "AttentionIsAllYouNeed.pdf",
+    "storage_path": "ab9a78a8-2b61-456f-9811-5816cd13a9eb/18e1b007a1dab45b30cc861ba2dfda25.pdf",
+    "concepts": [
+      {
+        "name": "transformer",
+        "aliases": [
+          "transformer model",
+          "transformer architecture"
+        ],
+        "category": "new",
+        "definition": "In electrical engineering, a transformer is a passive component that transfers electrical energy from one electrical circuit to another circuit, or multiple circuits. A varying current in any coil of the transformer produces a varying magnetic flux in the transformer's core, which induces a varying electromotive force (EMF) across any other coils wound around the same core.",
+        "resource_urls": [
+          "https://en.wikipedia.org/wiki/Transformer",
+          "https://en.wikipedia.org/wiki/ABB",
+          "https://en.wikipedia.org/wiki/AC_power",
+          "https://en.wikipedia.org/wiki/Air_gap_(magnetic)",
+          "https://en.wikipedia.org/wiki/Allgemeine_Elektricit\u00e4ts-Gesellschaft"
+        ],
+        "canonical_name": "transformer",
+        "evidence_quote": "we propose the Transformer, a model architecture eschewing recurrence and instead relying entirely on an attention mechanism",
+        "is_contradictory": false,
+        "contradiction_explanation": null
+      },
+      {
+        "name": "self-attention",
+        "aliases": [
+          "intra-attention"
+        ],
+        "category": "new",
+        "definition": "Self-attention can mean:\n\nAttention (machine learning), a machine learning technique\nself-attention, an attribute of natural cognition.",
+        "resource_urls": [
+          "https://en.wikipedia.org/wiki/Self-attention",
+          "https://en.wikipedia.org/wiki/Attention_(machine_learning)",
+          "https://en.wikipedia.org/wiki/Cognition",
+          "https://en.wikipedia.org/wiki/Help:Disambiguation"
+        ],
+        "canonical_name": "self_attention",
+        "evidence_quote": "Self-attention, sometimes called intra-attention is an attention mechanism relating different positions of a single sequence",
+        "is_contradictory": false,
+        "contradiction_explanation": null
+      },
+      {
+        "name": "multi-head attention",
+        "aliases": [
+          "multi-head attention mechanism"
+        ],
+        "category": "new",
+        "definition": "In machine learning, attention is a method that determines the importance of each component in a sequence relative to the other components in that sequence. In natural language processing, importance is represented by \"soft\" weights assigned to each word in a sentence.",
+        "resource_urls": [
+          "https://en.wikipedia.org/wiki/Attention_(machine_learning)",
+          "https://en.wikipedia.org/wiki/1-hot",
+          "https://en.wikipedia.org/wiki/15.ai",
+          "https://en.wikipedia.org/wiki/AAAI_Conference_on_Artificial_Intelligence",
+          "https://en.wikipedia.org/wiki/ACT-R"
+        ],
+        "canonical_name": "multi_head_attention",
+        "evidence_quote": "Multi-head attention allows the model to jointly attend to information from different representation subspaces",
+        "is_contradictory": false,
+        "contradiction_explanation": null
+      },
+      {
+        "name": "scaled dot-product attention",
+        "aliases": [
+          "scaled dot-product attention"
+        ],
+        "category": "new",
+        "definition": null,
+        "resource_urls": [],
+        "canonical_name": "scaled_dot_product_attention",
+        "evidence_quote": "We call our particular attention 'Scaled Dot-Product Attention'",
+        "is_contradictory": false,
+        "contradiction_explanation": null
+      },
+      {
+        "name": "encoder-decoder architecture",
+        "aliases": [
+          "encoder-decoder structure"
+        ],
+        "category": "prerequisite",
+        "definition": null,
+        "resource_urls": [],
+        "canonical_name": "encoder_decoder_architecture",
+        "evidence_quote": "Most competitive neural sequence transduction models have an encoder-decoder structure",
+        "is_contradictory": false,
+        "contradiction_explanation": null
+      },
+      {
+        "name": "recurrent neural network",
+        "aliases": [
+          "rnn",
+          "recurrent neural networks"
+        ],
+        "category": "prerequisite",
+        "definition": "In artificial neural networks, recurrent neural networks (RNNs) are designed for processing sequential data, such as text, speech, and time series, where the order of elements is important. Unlike feedforward neural networks, which process inputs independently, RNNs utilize recurrent connections, where the output of a neuron at one time step is fed back as input to the network at the next time step.",
+        "resource_urls": [
+          "https://en.wikipedia.org/wiki/Recurrent_neural_network",
+          "https://en.wikipedia.org/wiki/15.ai",
+          "https://en.wikipedia.org/wiki/AAAI_Conference_on_Artificial_Intelligence",
+          "https://en.wikipedia.org/wiki/ACT-R",
+          "https://en.wikipedia.org/wiki/AI_agent"
+        ],
+        "canonical_name": "recurrent_neural_network",
+        "evidence_quote": "Recurrent neural networks, long short-term memory and gated recurrent neural networks in particular, have been firmly established",
+        "is_contradictory": false,
+        "contradiction_explanation": null
+      },
+      {
+        "name": "attention mechanism",
+        "aliases": [
+          "attention",
+          "attention function"
+        ],
+        "category": "prerequisite",
+        "definition": "In machine learning, attention is a method that determines the importance of each component in a sequence relative to the other components in that sequence. In natural language processing, importance is represented by \"soft\" weights assigned to each word in a sentence.",
+        "resource_urls": [
+          "https://en.wikipedia.org/wiki/Attention_(machine_learning)",
+          "https://en.wikipedia.org/wiki/1-hot",
+          "https://en.wikipedia.org/wiki/15.ai",
+          "https://en.wikipedia.org/wiki/AAAI_Conference_on_Artificial_Intelligence",
+          "https://en.wikipedia.org/wiki/ACT-R"
+        ],
+        "canonical_name": "attention_mechanism",
+        "evidence_quote": "Attention mechanisms have become an integral part of compelling sequence modeling and transduction models",
+        "is_contradictory": false,
+        "contradiction_explanation": null
+      },
+      {
+        "name": "layer normalization",
+        "aliases": [
+          "layer normalization"
+        ],
+        "category": "prerequisite",
+        "definition": "In machine learning, normalization is a statistical technique with various applications. There are two main forms of normalization, namely data normalization and activation normalization.",
+        "resource_urls": [
+          "https://en.wikipedia.org/wiki/Normalization_(machine_learning)",
+          "https://en.wikipedia.org/wiki/15.ai",
+          "https://en.wikipedia.org/wiki/AAAI_Conference_on_Artificial_Intelligence",
+          "https://en.wikipedia.org/wiki/ACT-R",
+          "https://en.wikipedia.org/wiki/AI_agent"
+        ],
+        "canonical_name": "layer_normalization",
+        "evidence_quote": "followed by layer normalization [1]",
+        "is_contradictory": false,
+        "contradiction_explanation": null
+      },
+      {
+        "name": "residual connection",
+        "aliases": [
+          "residual connections"
+        ],
+        "category": "prerequisite",
+        "definition": "A residual neural network (also referred to as a residual network or ResNet) is a deep learning architecture in which the layers learn residual functions with reference to the layer inputs. It was developed in 2015 for image recognition, and won the ImageNet Large Scale Visual Recognition Challenge (ILSVRC) of that year.\nAs a point of terminology, \"residual connection\" refers to the specific architectural motif of \n  \n    \n      \n        x\n        \u21a6\n        f\n        (\n        x\n        )\n        +\n        x\n      \n    \n    {\\displaystyle x\\mapsto f(x)+x}\n  \n, where \n  \n    \n      \n        f\n      \n    \n    {\\displaystyle f}\n  \n is an arbitrary neural network module.",
+        "resource_urls": [
+          "https://en.wikipedia.org/wiki/Residual_neural_network",
+          "https://en.wikipedia.org/wiki/15.ai",
+          "https://en.wikipedia.org/wiki/AAAI_Conference_on_Artificial_Intelligence",
+          "https://en.wikipedia.org/wiki/ACT-R",
+          "https://en.wikipedia.org/wiki/AI_agent"
+        ],
+        "canonical_name": "residual_connection",
+        "evidence_quote": "We employ a residual connection [11] around each of the two sub-layers",
+        "is_contradictory": false,
+        "contradiction_explanation": null
+      }
+    ],
+    "edges": {
+      "transformer": [
+        "multi-head attention",
+        "layer normalization",
+        "residual connection",
+        "encoder-decoder architecture"
+      ],
+      "self-attention": [
+        "attention mechanism",
+        "scaled dot-product attention"
+      ],
+      "attention mechanism": [
+        "recurrent neural network"
+      ],
+      "layer normalization": [],
+      "residual connection": [],
+      "multi-head attention": [
+        "self-attention"
+      ],
+      "recurrent neural network": [],
+      "encoder-decoder architecture": [
+        "recurrent neural network"
+      ],
+      "scaled dot-product attention": [
+        "attention mechanism"
+      ]
+    },
+    "created_at": "2026-07-04T07:33:43.129292+00:00"
+  },
+  "citations": []
+}

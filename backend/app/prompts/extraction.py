@@ -2,82 +2,122 @@
 app/prompts/extraction.py
 
 LLM prompt templates for concept extraction and dependency mapping.
-
-Design decisions (from plan Part 1, Section 4.3 and 4.4):
-  - Consistent XML-style tags force the model to understand what it's
-    generating, reducing preamble text before the JSON.
-  - The <output> tag wrapping is explicitly stripped by extract_json().
-  - Temperature 0.2 — we want the same paper to produce the same concept
-    list on re-runs so the cache stays meaningful.
-  - "category: prerequisite | introduced" is the key field that lets the
-    roadmap distinguish "you need to know this" from "this paper teaches this."
+Upgraded in Phase 3 with Claude's official techniques:
+  - Role sentence
+  - <thinking> CoT before <answer>
+  - Evidence grounding (evidence_quote)
+  - Worked examples
 """
 
 CONCEPT_EXTRACTION_PROMPT = """\
+You are a precise and highly educational research paper analyst. You identify the
+exact prerequisite knowledge a reader needs before they can understand a given
+paper section, and you break down the novel mechanisms introduced by the paper.
+You also extract structural concepts such as limitations of prior work, 
+mathematical formulations, and payoffs/results.
+
 <instructions>
-You are analyzing a research paper to build a prerequisite knowledge map
-for a learner. Extract every distinct technical concept a learner must
-understand to comprehend this paper's core contribution.
-
-Be granular: prefer "gradient descent with momentum" over "machine learning".
-Prefer "scaled dot-product attention" over "attention".
-Aim for 15-30 concepts for a typical paper — fewer than 10 is usually too
-coarse, more than 40 is usually too granular to be useful.
-
-For each concept, also provide any common aliases or abbreviations used
-in the paper itself (e.g. "MHA" for "multi-head attention").
-
-Think step by step:
-  1. Identify the paper's core contribution in one sentence.
-  2. Work backward: what must a reader already know to follow that contribution?
-  3. What does the paper itself introduce or teach as new?
+1. Read the <paper_excerpt> below.
+2. In <thinking> tags, identify the core concepts. This includes fundamental prerequisites, limitations of prior work, novel mechanisms, and significant payoffs.
+3. For each concept, write a highly detailed, beginner-friendly definition that explains it from first principles in the context of the paper. Avoid academic jargon where possible.
+4. In <answer> tags, output ONLY the JSON object described in <output_format>.
+   No text before or after the JSON.
 </instructions>
-<paper_content>
-{abstract_intro_methodology}
-</paper_content>
+
 <output_format>
-Return ONLY a JSON object inside <output> tags, no text before or after:
-<output>
 {{
-  "paper_title": "...",
+  "paper_title": "string, infer from text if possible",
   "core_contribution": "one sentence describing what is novel here",
   "concepts": [
     {{
-      "name": "scaled dot-product attention",
-      "aliases": ["SDPA"],
-      "category": "prerequisite",
-      "brief_context": "how this concept is used in the paper, one sentence"
+      "name": "string, lowercase, canonical form",
+      "aliases": ["string", ...],
+      "category": "prerequisite" | "new" | "paper_specific_term",
+      "definition": "string, highly detailed and beginner-friendly explanation",
+      "evidence_quote": "string, <20 words, copied verbatim from the excerpt"
     }}
   ]
 }}
-</output>
-</output_format>"""
+</output_format>
+
+<examples>
+<example>
+<paper_excerpt>
+We compute attention weights via a softmax over scaled dot products of
+queries and keys, following the standard scaled dot-product attention
+mechanism used in prior transformer architectures. To improve efficiency, we introduce the Self-Optimizable Action Generation (SOAG) module.
+</paper_excerpt>
+<thinking>
+"softmax" - assumed known, standard ML op -> prerequisite. Needs a beginner definition.
+"scaled dot-product attention" - paper explicitly names it as the
+mechanism it uses, doesn't re-derive it -> prerequisite.
+"transformer architectures" - referenced as prior work, not explained -> prerequisite.
+"Self-Optimizable Action Generation" - an acronym/module coined by the authors in this paper -> paper_specific_term.
+</thinking>
+<answer>
+{{
+  "paper_title": "Unknown",
+  "core_contribution": "Computes attention weights using standard scaled dot-product attention and introduces the SOAG module.",
+  "concepts": [
+    {{"name": "softmax", "aliases": ["softmax function"], "category": "prerequisite", "definition": "A mathematical function that turns a vector of numbers into a probability distribution, making sure all values add up to 1.0.", "evidence_quote": "softmax over scaled dot products"}},
+    {{"name": "scaled_dot_product_attention", "aliases": ["scaled dot-product attention"], "category": "prerequisite", "definition": "An attention mechanism that computes weights by taking the dot product of a query and key, and scaling it down to prevent vanishing gradients.", "evidence_quote": "standard scaled dot-product attention mechanism"}},
+    {{"name": "transformer", "aliases": ["transformer architectures"], "category": "prerequisite", "definition": "A popular neural network architecture that relies entirely on attention mechanisms to draw global dependencies between input and output.", "evidence_quote": "prior transformer architectures"}},
+    {{"name": "self_optimizable_action_generation", "aliases": ["SOAG module"], "category": "paper_specific_term", "definition": "A novel module introduced in this paper designed to improve the efficiency of action generation.", "evidence_quote": "introduce the Self-Optimizable Action Generation (SOAG) module"}}
+  ]
+}}
+</answer>
+</example>
+</examples>
+
+<paper_excerpt>
+{abstract_intro_methodology}
+</paper_excerpt>
+"""
 
 
 DEPENDENCY_MAPPING_PROMPT = """\
-<instructions>
-Given this list of technical concepts extracted from a research paper,
-build a directed prerequisite graph. For each concept, list which OTHER
-concepts from this same list it directly depends on — i.e., which ones must
-be understood first.
+You are an expert at mapping the topological dependencies of machine learning
+concepts. You precisely identify which concepts must be understood BEFORE
+another concept can be grasped.
 
-Rules:
-  - Only use concept names from the provided list. Do not invent new ones.
-  - A concept with no prerequisites from this list should have an empty array.
-  - Avoid cycles: if you think A requires B and B requires A, choose the
-    more fundamental one as the prerequisite and leave the other direction out.
-  - Prefer fewer, stronger dependencies over many weak ones.
+<instructions>
+1. Read the <concept_list> below, which contains concepts extracted from a paper.
+2. In <thinking> tags, for each concept, identify which OTHER concepts in the
+   list are strict prerequisites. Avoid cycles (e.g., A requires B and B requires A).
+3. In <answer> tags, output ONLY the JSON object described in <output_format>.
+   No text before or after the JSON.
 </instructions>
+
+<output_format>
+{{
+  "edges": [
+    {{"concept": "multi_head_attention", "requires": ["scaled_dot_product_attention", "linear_projections"]}}
+  ]
+}}
+</output_format>
+
+<examples>
+<example>
+<concept_list>
+["multi_head_attention", "positional_encoding", "scaled_dot_product_attention", "linear_projections"]
+</concept_list>
+<thinking>
+"multi_head_attention": physically built using scaled_dot_product_attention and linear_projections. It requires them.
+"positional_encoding": added to inputs before attention, but attention itself doesn't depend on it. Reject this edge.
+"scaled_dot_product_attention": fundamental op, no prerequisites in this list.
+"linear_projections": fundamental op, no prerequisites in this list.
+</thinking>
+<answer>
+{{
+  "edges": [
+    {{"concept": "multi_head_attention", "requires": ["scaled_dot_product_attention", "linear_projections"]}}
+  ]
+}}
+</answer>
+</example>
+</examples>
+
 <concept_list>
 {json_list_of_concept_names}
 </concept_list>
-<output_format>
-Return ONLY JSON inside <output> tags:
-<output>
-{{
-  "edges": [
-    {{"concept": "multi-head attention", "requires": ["scaled dot-product attention", "linear projections"]}}
-  ]
-}}
-</output>
-</output_format>"""
+"""

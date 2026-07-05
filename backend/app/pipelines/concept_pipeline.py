@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 app/pipelines/concept_pipeline.py
 
@@ -17,7 +18,7 @@ import json
 import logging
 
 from app.prompts.extraction import CONCEPT_EXTRACTION_PROMPT, DEPENDENCY_MAPPING_PROMPT
-from app.services.llm_client import call_llm_for_json
+from app.services.llm_client import call_llm_for_json, validate_evidence_quotes
 from app.utils.canonical import canonical
 from app.utils.cache_manager import alias_map_cache
 
@@ -124,6 +125,9 @@ async def extract_concepts(text_slice: str) -> dict:
 
     if "concepts" not in parsed:
         raise ValueError("Concept extraction response missing 'concepts' key")
+
+    # Validate quotes
+    parsed["concepts"] = validate_evidence_quotes(parsed["concepts"], text_slice)
 
     # Canonicalize immediately — nothing downstream touches raw names
     parsed["concepts"] = resolve_aliases(parsed["concepts"])

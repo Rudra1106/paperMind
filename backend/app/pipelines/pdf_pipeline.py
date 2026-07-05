@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 app/pipelines/pdf_pipeline.py
 

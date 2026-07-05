@@ -8,28 +8,30 @@
 
 /* ── Design Tokens ─────────────────────────────────────────────────────────── */
 :root {
-  /* Background layers */
-  --bg-base:       #080a0f;
-  --bg-surface:    #0d1117;
-  --bg-elevated:   #161b24;
-  --bg-hover:      #1c2333;
-  --bg-glass:      rgba(22, 27, 36, 0.7);
+  /* Background layers - Bohrium Dark Theme */
+  --bg-base:       #0d0d12;
+  --bg-surface:    #15151e;
+  --bg-elevated:   #1f1f2e;
+  --bg-hover:      #2a2a3c;
+  --bg-glass:      rgba(21, 21, 30, 0.7);
+  --bg-glass-strong: rgba(21, 21, 30, 0.9);
+  --glass-border:  rgba(255, 255, 255, 0.08);
 
-  /* Brand colours */
-  --indigo-400:    #818cf8;
-  --indigo-500:    #6366f1;
-  --indigo-600:    #4f46e5;
-  --indigo-900:    rgba(99, 102, 241, 0.12);
+  /* Brand colours - Bohrium Blue/Purple */
+  --indigo-400:    #6b63ff;
+  --indigo-500:    #5445ff;
+  --indigo-600:    #4030e5;
+  --indigo-900:    rgba(84, 69, 255, 0.08);
 
   /* Semantic colours */
   --success:       #10b981;
   --success-dim:   rgba(16, 185, 129, 0.12);
   --warning:       #f59e0b;
   --warning-dim:   rgba(245, 158, 11, 0.12);
-  --danger:        #f43f5e;
-  --danger-dim:    rgba(244, 63, 94, 0.12);
-  --info:          #38bdf8;
-  --info-dim:      rgba(56, 189, 248, 0.12);
+  --danger:        #ef4444;
+  --danger-dim:    rgba(239, 68, 68, 0.12);
+  --info:          #3b82f6;
+  --info-dim:      rgba(59, 130, 246, 0.12);
 
   /* Priority colours */
   --priority-critical:  var(--danger);
@@ -38,22 +40,22 @@
   --priority-almost:    var(--success);
 
   /* Text */
-  --text-primary:   #f0f4f8;
-  --text-secondary: #8b95a1;
-  --text-muted:     #4b5563;
+  --text-primary:   #f9fafb;
+  --text-secondary: #9ca3af;
+  --text-muted:     #6b7280;
   --text-accent:    var(--indigo-400);
 
   /* Borders */
-  --border:         rgba(255, 255, 255, 0.07);
-  --border-focus:   rgba(99, 102, 241, 0.5);
+  --border:         rgba(255, 255, 255, 0.1);
+  --border-focus:   rgba(84, 69, 255, 0.6);
 
-  /* Shadows */
-  --shadow-sm:   0 1px 3px rgba(0,0,0,0.4);
-  --shadow-md:   0 4px 16px rgba(0,0,0,0.5);
-  --shadow-lg:   0 8px 32px rgba(0,0,0,0.6);
-  --shadow-glow: 0 0 24px rgba(99, 102, 241, 0.25);
+  /* Shadows - Dark glowing shadows */
+  --shadow-sm:   0 1px 2px rgba(0,0,0,0.4);
+  --shadow-md:   0 4px 6px -1px rgba(0,0,0,0.5), 0 2px 4px -1px rgba(0,0,0,0.3);
+  --shadow-lg:   0 10px 15px -3px rgba(0,0,0,0.6), 0 4px 6px -2px rgba(0,0,0,0.4);
+  --shadow-glow: 0 0 20px rgba(84, 69, 255, 0.4), 0 0 10px rgba(84, 69, 255, 0.2);
 
-  /* Spacing scale (use these to stay consistent) */
+  /* Spacing scale */
   --s1:  4px;
   --s2:  8px;
   --s3:  12px;
@@ -98,9 +100,12 @@ html {
 body {
   font-family: var(--font-sans);
   font-size: 15px;
-  line-height: 1.6;
-  background-color: var(--bg-base);
+  line-height: 1.5;
   color: var(--text-primary);
+  background: radial-gradient(circle at 15% 50%, rgba(84, 69, 255, 0.08), transparent 25%),
+              radial-gradient(circle at 85% 30%, rgba(84, 69, 255, 0.05), transparent 25%),
+              var(--bg-base);
+  background-attachment: fixed;
   min-height: 100vh;
 }
 
@@ -151,15 +156,30 @@ code, pre {
 /* ── Glass Card ────────────────────────────────────────────────────────────── */
 .card {
   background: var(--bg-glass);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
+  transition: all var(--t-base);
+}
+
+.card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
 }
 
 .card-padded {
   padding: var(--s6);
+}
+
+.glass-panel {
+  background: var(--bg-glass-strong);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
 }
 
 /* ── Buttons ───────────────────────────────────────────────────────────────── */
@@ -179,12 +199,14 @@ code, pre {
 .btn-primary {
   background: linear-gradient(135deg, var(--indigo-500), var(--indigo-600));
   color: #fff;
-  box-shadow: 0 2px 12px rgba(99, 102, 241, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 15px rgba(84, 69, 255, 0.4);
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(84, 69, 255, 0.6), var(--shadow-glow);
+  filter: brightness(1.1);
 }
 
 .btn-ghost {

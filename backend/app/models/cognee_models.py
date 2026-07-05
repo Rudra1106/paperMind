@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 app/models/cognee_models.py
 
@@ -62,3 +63,23 @@ class ConceptNode(DataPoint):
 
     # Tells Cognee to index these fields for SIMILARITY and GRAPH_COMPLETION search
     metadata: dict = {"index_fields": ["name", "display_name", "definition"]}
+
+
+class PrerequisiteNode(ConceptNode):
+    """A foundational concept required to understand the paper."""
+    pass
+
+
+class PaperSpecificCoinageNode(ConceptNode):
+    """A novel term or system introduced specifically in this paper."""
+    pass
+
+
+class MathConstructNode(ConceptNode):
+    """A mathematical or algorithmic building block."""
+    pass
+
+
+class CitedWorkNode(ConceptNode):
+    """A referenced paper, dataset, or prior model."""
+    pass

@@ -40,9 +40,129 @@
   transition: background var(--t-base);
 }
 
-.pipeline-step.done    { background: var(--indigo-500); }
-.pipeline-step.active  { background: var(--indigo-400); animation: pulse-glow 1.5s infinite; }
-.pipeline-step.pending { background: var(--bg-hover); }
+.pipeline-step.active {
+  background: var(--primary);
+  box-shadow: 0 0 10px var(--primary);
+}
+
+.pipeline-step.done {
+  background: var(--success);
+}
+
+/* Sub-Concepts Expansion */
+.expand-chevron-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px;
+  margin-right: 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.expand-chevron-btn:hover {
+  background: var(--border-color);
+  color: var(--text);
+}
+
+.sub-concepts-container {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sub-concept-loading {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 0.5rem;
+}
+
+.sub-concept-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.sub-concept-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.sub-concept-header h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sub-concept-def {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin: 0 0 0.5rem 0;
+}
+
+.sub-concept-formula {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.5rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin-bottom: 0.5rem;
+}
+
+.sub-concept-formula code {
+  font-family: monospace;
+  font-size: 12px;
+  color: #a78bfa; /* subtle purple for math */
+}
+
+.sub-concept-wolfram {
+  background: rgba(16, 185, 129, 0.1);
+  border-left: 2px solid var(--success);
+  padding: 0.5rem;
+  border-radius: 0 4px 4px 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.sub-concept-wolfram p {
+  margin: 0.25rem 0 0 0;
+  line-height: 1.3;
+}
+
+.wolfram-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--success);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sub-concept-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 0.5rem;
+}
+
+.btn-ghost.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+}
 
 /* ── Concept Card ──────────────────────────────────────────────────────────── */
 .concept-card {

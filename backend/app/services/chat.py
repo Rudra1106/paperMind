@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 app/services/chat.py
 
@@ -99,7 +100,7 @@ def persist_session_snapshot(session: ChatSession) -> None:
 
 # ── Cognee context retrieval ──────────────────────────────────────────────────
 
-async def build_professor_context(paper_id: str, question: str) -> dict:
+async def build_professor_context(paper_id: str, question: str, user_id: str) -> dict:
     """
     Retrieve relevant context from Cognee using explicit SearchType values.
 
@@ -112,29 +113,58 @@ async def build_professor_context(paper_id: str, question: str) -> dict:
     """
     try:
         from cognee import search, SearchType
+        from cognee.modules.users.models import User
+        import uuid
+        
+        # User object for ACL
+        cognee_user = User(id=uuid.UUID(user_id)) if user_id and user_id != "default" else None
+
+        from cognee import recall
 
         # Run all three searches concurrently — they're all reads, no conflict
         prereq_task = search(
             query_text=f"prerequisites for: {question}",
-            query_type=SearchType.INSIGHTS,
+            query_type=SearchType.CHUNKS,
             datasets=["paper_concepts"],
+            user=cognee_user,
         )
         explanation_task = search(
             query_text=question,
             query_type=SearchType.GRAPH_COMPLETION,
             datasets=[f"paper_{paper_id}_fulltext", "paper_concepts"],
+            user=cognee_user,
         )
         similar_task = search(
             query_text=question,
-            query_type=SearchType.SIMILARITY,
+            query_type=SearchType.CHUNKS,
             datasets=["paper_concepts"],
+            user=cognee_user,
+        )
+        
+        # New: test cognee.recall with auto_route side-by-side
+        recall_task = recall(
+            query_text=question,
+            datasets=[f"paper_{paper_id}_fulltext", "paper_concepts"],
+            auto_route=True,
+            only_context=True,
+            user=cognee_user,
         )
 
-        prereq_result, explanation_result, similar_result = await asyncio.gather(
+        prereq_result, explanation_result, similar_result, recall_result = await asyncio.gather(
             prereq_task,
             explanation_task,
             similar_task,
+            recall_task,
             return_exceptions=True,
+        )
+        
+        # Log side-by-side comparison for experimentation
+        logger.info(
+            "COGNEE RECALL EXPERIMENT:\nQuestion: %s\nManual CHUNKS: %s\nManual GRAPH: %s\nRecall auto_route: %s",
+            question,
+            str(similar_result)[:200] if not isinstance(similar_result, Exception) else "ERROR",
+            str(explanation_result)[:200] if not isinstance(explanation_result, Exception) else "ERROR",
+            str(recall_result)[:400] if not isinstance(recall_result, Exception) else f"ERROR: {recall_result}"
         )
 
         return {
@@ -148,22 +178,12 @@ async def build_professor_context(paper_id: str, question: str) -> dict:
         return {"prereq_edges": [], "graph_explanation": "", "similar_chunks": []}
 
 
-def _format_context_for_prompt(context: dict) -> str:
-    """Format the Cognee retrieval results into a readable prompt section."""
-    parts = []
-
-    if context.get("graph_explanation"):
-        parts.append(f"From the paper's knowledge graph:\n{context['graph_explanation']}")
-
-    if context.get("prereq_edges"):
-        edges_text = str(context["prereq_edges"])[:800]  # cap length
-        parts.append(f"Prerequisite relationships:\n{edges_text}")
-
-    if context.get("similar_chunks"):
-        chunks_text = str(context["similar_chunks"])[:600]
-        parts.append(f"Related content:\n{chunks_text}")
-
-    return "\n\n".join(parts) if parts else "No additional context available from the paper."
+def _format_context_block(items, label="Context") -> str:
+    """Format a single context list into a readable block."""
+    if not items:
+        return f"No {label.lower()} available."
+    # cap length
+    return str(items)[:800]
 
 
 # ── Main turn loop ────────────────────────────────────────────────────────────
@@ -191,12 +211,17 @@ async def run_professor_turn(
     # Format the lists of known vs gap concepts for the system prompt
     known_list = ", ".join(k for k, v in known_concepts.items() if v >= 0.6) or "none yet"
     gap_list = ", ".join(c["canonical_name"] for c in gap_concepts[:15]) or "none identified"
-    graph_context = _format_context_for_prompt(context)
+    
+    insights_context = _format_context_block(context.get("prereq_edges"), "prerequisite edges")
+    graph_completion_context = _format_context_block(context.get("graph_explanation"), "graph explanation")
+    similarity_context = _format_context_block(context.get("similar_chunks"), "similar chunks")
 
     system_prompt = PROFESSOR_SYSTEM_PROMPT.format(
         known_concepts_list=known_list,
         gap_list_for_this_paper=gap_list,
-        graph_context=graph_context,
+        insights_context=insights_context,
+        graph_completion_context=graph_completion_context,
+        similarity_context=similarity_context,
         recent_turns=history_text,
     )
 
@@ -210,9 +235,14 @@ async def run_professor_turn(
 
     # Store the turn in Cognee's session memory for improve() later
     try:
+        from cognee.modules.users.models import User
+        import uuid
+        cognee_user = User(id=uuid.UUID(session.user_id)) if session.user_id and session.user_id != "default" else None
+        
         await cognee.remember(
             f"Learner asked: {message}\nProfessor responded: {result.get('response', '')}",
             dataset_name=f"session_{session.session_id}",
+            user=cognee_user,
         )
     except Exception as exc:
         logger.debug("Cognee session remember failed: %s", exc)
@@ -234,7 +264,11 @@ async def consolidate_session(session: ChatSession) -> None:
     Called explicitly from the chat endpoint when a session ends.
     """
     try:
-        await cognee.improve(dataset_name="user_knowledge")
+        from cognee.modules.users.models import User
+        import uuid
+        cognee_user = User(id=uuid.UUID(session.user_id)) if session.user_id and session.user_id != "default" else None
+        
+        await cognee.improve(dataset_name="user_knowledge", user=cognee_user)
         logger.info("Session %s consolidated into permanent graph.", session.session_id)
     except Exception as exc:
         logger.warning("Session consolidation failed: %s", exc)

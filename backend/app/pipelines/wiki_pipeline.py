@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 app/pipelines/wiki_pipeline.py
 

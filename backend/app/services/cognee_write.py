@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 app/services/cognee_write.py
 
@@ -31,7 +32,13 @@ import cognee
 from cognee.infrastructure.engine import DataPoint
 from pydantic import SkipValidation
 
-from app.models.cognee_models import ConceptNode
+from app.models.cognee_models import (
+    ConceptNode,
+    PrerequisiteNode,
+    PaperSpecificCoinageNode,
+    MathConstructNode,
+    CitedWorkNode,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +48,7 @@ async def write_paper_to_cognee(
     edges: dict[str, list[str]],
     enriched: dict[str, dict],
     paper_id: str,
+    user_id: str = "default",
 ) -> None:
     """
     Build ConceptNode DataPoints and write them to Cognee's graph.
@@ -66,13 +74,32 @@ async def write_paper_to_cognee(
         wiki_data = enriched.get(cname, {})
 
         definition = wiki_data.get("definition") or concept.get("brief_context", "")
+        if definition:
+            definition = definition[:1000]
+            
         resource_urls = wiki_data.get("resource_urls", [])
+        if resource_urls:
+            resource_urls = resource_urls[:3]
 
-        nodes[cname] = ConceptNode(
+        category = concept.get("category", "prerequisite")
+        
+        # Select the appropriate native Node Set (subclass) based on category
+        if category == "prerequisite":
+            node_class = PrerequisiteNode
+        elif category == "paper_specific_term" or category == "paper_specific_coinage":
+            node_class = PaperSpecificCoinageNode
+        elif category == "math_construct":
+            node_class = MathConstructNode
+        elif category == "cited_work":
+            node_class = CitedWorkNode
+        else:
+            node_class = ConceptNode
+
+        nodes[cname] = node_class(
             name=cname,
             display_name=concept["name"],
             definition=definition,
-            category=concept.get("category", "prerequisite"),
+            category=category,
             paper_id=paper_id,
             resource_urls=resource_urls,
         )
@@ -123,10 +150,10 @@ async def write_paper_to_cognee(
             "add_data_points() failed (%s). Falling back to guided-text remember().",
             exc,
         )
-        await _fallback_remember_all(nodes, paper_id)
+        await _fallback_remember_all(nodes, paper_id, user_id)
 
 
-async def _fallback_remember_all(nodes: dict[str, ConceptNode], paper_id: str) -> None:
+async def _fallback_remember_all(nodes: dict[str, ConceptNode], paper_id: str, user_id: str = "default") -> None:
     """
     Fallback: ingest concepts via cognee.remember() with guided text.
     Used if add_data_points() is unavailable. Costs extra LLM calls.
@@ -137,6 +164,11 @@ async def _fallback_remember_all(nodes: dict[str, ConceptNode], paper_id: str) -
             lines.append(f"A learning resource for '{cname}' is at {node.resource_urls[0]}.")
         lines.append(f"The concept '{cname}' appears in paper '{paper_id}'.")
         text = "\n".join(lines)
-        await cognee.remember(text, dataset_name="paper_concepts")
+        
+        from cognee.modules.users.models import User
+        import uuid
+        cognee_user = User(id=uuid.UUID(user_id)) if user_id and user_id != "default" else None
+        
+        await cognee.remember(text, dataset_name="paper_concepts", user=cognee_user)
 
     logger.info("Fallback remember() completed for %d concepts.", len(nodes))

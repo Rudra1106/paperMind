@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 app/services/roadmap.py
 
@@ -82,29 +83,22 @@ def compute_gap(
     return gaps
 
 
-def topological_roadmap(
+def phased_topological_roadmap(
     gap_concepts: list[dict],
     edges: dict[str, list[str]],
 ) -> list[dict]:
     """
-    Order gap concepts using a modified Kahn's algorithm (BFS topological sort)
-    with confidence priority as a tiebreaker.
-
-    Priority: prerequisites come before the concepts that depend on them.
-    Within concepts that have no ordering constraint between them, we emit
-    the lowest-confidence (most critical) concept first so learners tackle
-    their biggest gaps earliest.
-
-    Concepts in the edge map that are NOT in the gap list are skipped —
-    they're known concepts that don't need to be studied.
-
+    Order gap concepts using Kahn's algorithm, grouping them into discrete 
+    depth-based phases (modules). Concepts that can be learned in parallel 
+    are grouped into the same phase.
+    
     Args:
         gap_concepts: Output of compute_gap() — annotated with priority.
         edges: Full edge map (canonical_name → [prereq canonical_names]).
                Only edges between gap concepts are used.
 
     Returns:
-        gap_concepts, reordered. Same dict structure, same fields.
+        List of module dictionaries containing phase number, title, and concepts.
     """
     if not gap_concepts:
         return []
@@ -124,41 +118,97 @@ def topological_roadmap(
                 graph[prereq].append(concept_name)
                 in_degree[concept_name] += 1
 
-    # Seed the queue with zero-in-degree concepts, sorted by priority
-    ready = deque(
-        sorted(
-            [n for n in gap_names if in_degree[n] == 0],
-            key=lambda n: PRIORITY_RANK[by_name[n]["priority"]],
-        )
-    )
+    # Seed the queue with zero-in-degree concepts
+    ready = [n for n in gap_names if in_degree[n] == 0]
 
-    ordered: list[dict] = []
+    modules: list[dict] = []
+    phase_index = 1
+    visited = set()
+
     while ready:
-        current = ready.popleft()
-        ordered.append(by_name[current])
+        # Sort current phase concepts by priority for display order within the module
+        ready.sort(key=lambda n: PRIORITY_RANK.get(by_name[n].get("priority", "medium"), 2))
+        
+        phase_concepts = [by_name[n] for n in ready]
+        modules.append({
+            "phase": phase_index,
+            "title": f"Phase {phase_index}",
+            "concepts": phase_concepts
+        })
+        visited.update(ready)
 
         newly_ready = []
-        for neighbour in graph[current]:
-            in_degree[neighbour] -= 1
-            if in_degree[neighbour] == 0:
-                newly_ready.append(neighbour)
+        for current in ready:
+            for neighbour in graph[current]:
+                in_degree[neighbour] -= 1
+                if in_degree[neighbour] == 0:
+                    newly_ready.append(neighbour)
 
-        # Re-sort the queue including newly unblocked concepts
-        all_ready = list(ready) + newly_ready
-        ready = deque(
-            sorted(all_ready, key=lambda n: PRIORITY_RANK[by_name[n]["priority"]])
-        )
+        ready = newly_ready
+        phase_index += 1
 
     # Detect if any concepts were stranded by a cycle that slipped through
-    if len(ordered) < len(gap_names):
-        unvisited = gap_names - {c["canonical_name"] for c in ordered}
+    if len(visited) < len(gap_names):
+        unvisited = gap_names - visited
         logger.warning(
             "Topological sort did not reach %d concept(s): %s. "
             "This suggests a residual cycle — appending them at end.",
             len(unvisited),
             unvisited,
         )
-        for name in unvisited:
-            ordered.append(by_name[name])
+        unvisited_list = [by_name[name] for name in unvisited]
+        unvisited_list.sort(key=lambda c: PRIORITY_RANK.get(c.get("priority", "medium"), 2))
+        
+        modules.append({
+            "phase": phase_index,
+            "title": f"Phase {phase_index} (Cyclic Residuals)",
+            "concepts": unvisited_list
+        })
 
-    return ordered
+    return modules
+
+async def generate_roadmap_titles_async(modules: list[dict], cache_dict: dict, cache_key: tuple, paper_title: str) -> None:
+    """
+    Fire-and-forget background task to generate rich titles for each phase 
+    using an LLM. Once generated, updates the modules in the cache.
+    """
+    from app.services.llm_client import call_llm_for_json
+    import json
+
+    try:
+        # Prepare a lightweight summary of phases for the LLM
+        phase_summaries = []
+        for m in modules:
+            concept_names = [c.get("display_name") or c.get("name") for c in m["concepts"]]
+            phase_summaries.append({"phase": m["phase"], "concepts": concept_names})
+
+        prompt = (
+            f"Generate concise, engaging, and descriptive titles for a learning roadmap on '{paper_title}'.\n"
+            "Each phase contains the following concepts to be learned:\n"
+            f"{json.dumps(phase_summaries, indent=2)}\n\n"
+            "Return a JSON object mapping phase integers to title strings. Example: {\"1\": \"Foundations of Vectors\", \"2\": \"Self-Attention\"}"
+        )
+
+        parsed = await call_llm_for_json(
+            prompt,
+            system="You are an expert curriculum designer. Return only the requested JSON mapping.",
+            temperature=0.4
+        )
+
+        # Update the cache
+        if cache_key in cache_dict:
+            ts, cached_response = cache_dict[cache_key]
+            
+            # Map the generated titles back to the modules
+            for m in cached_response.modules:
+                str_phase = str(m.phase)
+                if str_phase in parsed:
+                    m.title = parsed[str_phase]
+
+            # Update cache timestamp to keep it fresh
+            import time
+            cache_dict[cache_key] = (time.time(), cached_response)
+            logger.info("Successfully updated roadmap titles in background cache for %s", cache_key)
+
+    except Exception as e:
+        logger.warning("Background title generation failed: %s", e)

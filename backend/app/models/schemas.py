@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 app/models/schemas.py
 
@@ -18,6 +19,10 @@ from pydantic import BaseModel, Field
 class UploadResponse(BaseModel):
     """Returned immediately from POST /upload-paper."""
     job_id: str
+
+
+class ArxivUploadRequest(BaseModel):
+    url: str
 
 
 class JobStatus(BaseModel):
@@ -44,22 +49,53 @@ class ConceptSummary(BaseModel):
     priority: str = "critical"
     resource_urls: list[str] = []
     requires: list[str] = []       # list of canonical_names this concept depends on
+    citation_index: int | None = None
 
+
+class RoadmapModule(BaseModel):
+    phase: int
+    title: str = ""
+    concepts: list[ConceptSummary]
 
 class RoadmapResponse(BaseModel):
     """Response from GET /roadmap/{paper_id}."""
-    roadmap: list[ConceptSummary]  # topologically ordered, lowest-confidence first
+    modules: list[RoadmapModule]
     total_concepts: int
     known_count: int               # concepts where confidence >= threshold
     paper_id: str
 
 
+# ── Sub-Concept Expansion ─────────────────────────────────────────────────────
+
+class SubConceptItem(BaseModel):
+    """A single sub-concept or mathematical building block within a concept."""
+    name: str
+    canonical_name: str
+    definition: str
+    is_math: bool = False
+    formula: str | None = None          # LaTeX or plain-text formula when is_math=True
+    wolfram_result: str | None = None   # Wolfram-verified step-by-step when available
+
+
+class ConceptExpansionRequest(BaseModel):
+    """Body for POST /api/v1/concepts/{concept_id}/expand."""
+    paper_id: str
+
+
+class ConceptExpansionResponse(BaseModel):
+    """Response from POST /api/v1/concepts/{concept_id}/expand."""
+    concept_name: str
+    sub_concepts: list[SubConceptItem]
+    wolfram_verified: bool = False      # True if at least one formula was Wolfram-verified
+
+
 # ── Chat ──────────────────────────────────────────────────────────────────────
 
 class ChatRequest(BaseModel):
-    message: str
-    session_id: str
-    paper_id: str
+    message: str | None = None
+    session_id: str | None = None
+    paper_id: str | None = None
+    deep_study_mode: bool = False
 
 
 class ConfidenceSignal(BaseModel):
@@ -73,6 +109,7 @@ class ChatResponse(BaseModel):
     response: str
     session_id: str
     confidence_signal: ConfidenceSignal | None = None
+    verified_by_wolfram: bool = False   # True when the response included Wolfram math verification
 
 
 # ── Concept confidence update ─────────────────────────────────────────────────
@@ -95,3 +132,59 @@ class KnowledgeGraphResponse(BaseModel):
     """A flat map of canonical_name → confidence for the entire user graph."""
     concepts: dict[str, float]
     total: int
+
+
+# ── Paper Details ─────────────────────────────────────────────────────────────
+
+class PaperResponse(BaseModel):
+    id: str
+    title: str
+    filename: str
+    pdf_url: str | None = None
+
+
+# ── References & Citations ────────────────────────────────────────────────────
+
+class PaperReference(BaseModel):
+    """A single reference or inbound citation entry."""
+    title: str
+    year: int | None = None
+    authors: list[str] = []
+    semantic_scholar_url: str = ""
+
+
+class PaperReferencesResponse(BaseModel):
+    """Response from GET /api/v1/papers/{paper_id}/references."""
+    paper_id: str
+    arxiv_id: str | None = None
+    references: list[PaperReference]   # papers this paper cites (oldest first)
+    citations: list[PaperReference]    # papers citing this one (newest first)
+
+
+# ── Topic Mode ────────────────────────────────────────────────────────────────
+
+class TopicCreateRequest(BaseModel):
+    seed_arxiv_id: str
+    size: int = Field(default=10, ge=5, le=30)
+
+
+# ── Citations Registry ────────────────────────────────────────────────────────
+
+class CitationItem(BaseModel):
+    id: int
+    citation_index: int
+    source_type: str
+    title: str
+    authors: list[str] = []
+    year: int | None = None
+    venue: str | None = None
+    url: str | None = None
+    is_preprint: bool = False
+    influence_score: float = 0.0
+
+class CitationsResponse(BaseModel):
+    paper_id: str
+    session_id: str | None = None
+    citations: list[CitationItem]
+
+
