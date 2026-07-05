@@ -8,7 +8,9 @@
 
 import { supabase } from '../pages/AuthPage';
 
-const BASE_URL = '/api/v1';
+const BASE_URL = import.meta.env.VITE_API_URL 
+  ? `${import.meta.env.VITE_API_URL}/api/v1` 
+  : '/api/v1';
 
 async function request(path, options = {}) {
   const { data: { session } } = await supabase.auth.getSession();
